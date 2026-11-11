@@ -1,0 +1,74 @@
+{
+  "name": "kaipal-arena",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A local-first desktop app for comparing and ranking responses from on-device AI models.",
+  "main": "electron/main.cjs",
+  "author": {
+    "name": "Kohenoor Technologies",
+    "email": "info@kohenoor.tech",
+    "url": "https://www.kohenoor.net"
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
+    "build": "vite build",
+    "start": "electron .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "tsc --noEmit && npm run test && npm run build",
+    "package": "npm run build && electron-builder --dir --publish never",
+    "dist": "npm run build && electron-builder --publish never"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "concurrently": "10.0.7",
+    "cross-env": "10.1.0",
+    "electron": "45.3.0",
+    "electron-builder": "26.18.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.7",
+    "vitest": "5.1.0",
+    "wait-on": "9.5.1"
+  },
+  "overrides": {
+    "minimatch": "11.0.1"
+  },
+  "build": {
+    "appId": "com.kohenoor.kaipal-arena",
+    "productName": "KAIPAL Arena",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "public/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "maintainer": "Kohenoor Technologies <info@kohenoor.tech>"
+    },
+    "icon": "public/app-icon.png"
+  },
+  "homepage": "https://www.kohenoor.net"
+}

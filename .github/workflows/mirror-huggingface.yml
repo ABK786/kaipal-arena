@@ -1,0 +1,39 @@
+name: Mirror release to Hugging Face
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    # Secrets cannot be read in a job-level `if`, so they are mapped to env and checked per step.
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
+    steps:
+      - name: Check Hugging Face settings
+        if: ${{ env.HF_TOKEN == '' || env.HF_REPO_ID == '' }}
+        run: echo "::notice::HF_TOKEN or HF_REPO_ID is not set; nothing is mirrored."
+      - uses: actions/checkout@v4
+        if: ${{ env.HF_TOKEN != '' && env.HF_REPO_ID != '' }}
+      - name: Download GitHub release assets
+        if: ${{ env.HF_TOKEN != '' && env.HF_REPO_ID != '' && github.event_name == 'release' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release download "${{ github.event.release.tag_name }}" --dir hf-release
+      - name: Prepare repository files
+        if: ${{ env.HF_TOKEN != '' && env.HF_REPO_ID != '' }}
+        run: |
+          mkdir -p hf-release/docs
+          cp README.md LICENSE SECURITY.md hf-release/
+          cp docs/ADAPTERS.md hf-release/docs/
+      - name: Upload distribution mirror
+        if: ${{ env.HF_TOKEN != '' && env.HF_REPO_ID != '' }}
+        run: |
+          pip install --disable-pip-version-check "huggingface_hub>=0.34,<2"
+          hf upload "$HF_REPO_ID" hf-release . --repo-type model --commit-message "Mirror ${{ github.event.release.tag_name || 'manual update' }}"
